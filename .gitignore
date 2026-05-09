@@ -41,3 +41,7 @@ values-*.local.yaml
 
 # Claude Code local config
 .claude/
+
+# Documents privés (blog, lettre de motivation)
+docs/blog-article-fr.md
+docs/cover-letter-fr.md
