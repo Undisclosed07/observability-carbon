@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "observability-carbon.fullname" . }}-carbon-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "observability-carbon.labels" . | nindent 4 }}
+data:
+  region: {{ .Values.carbon.region | quote }}
+  intensity_grams_per_kwh: {{ .Values.carbon.intensityGramsPerKwh | quote }}
+  pue: {{ .Values.carbon.pue | quote }}
+  regions.json: |
+    {{- .Values.carbon.regions | toJson | nindent 4 }}

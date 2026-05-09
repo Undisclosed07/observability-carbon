@@ -1,0 +1,29 @@
+apiVersion: v2
+name: observability-carbon
+description: Carbon-aware observability stack for Kubernetes (Prometheus + Grafana + Kepler)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - observability
+  - carbon
+  - sustainability
+  - kepler
+  - prometheus
+  - grafana
+home: https://github.com/Undisclosed07/observability-carbon
+sources:
+  - https://github.com/Undisclosed07/observability-carbon
+maintainers:
+  - name: Alban Mayunga
+    email: albanmayunga01@gmail.com
+icon: https://raw.githubusercontent.com/sustainable-computing-io/kepler/main/docs/kepler.png
+dependencies:
+  - name: kube-prometheus-stack
+    version: "58.7.2"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kubePrometheusStack.enabled
+  - name: kepler
+    version: "0.5.10"
+    repository: https://sustainable-computing-io.github.io/kepler-helm-chart
+    condition: kepler.enabled

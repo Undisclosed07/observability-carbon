@@ -1,0 +1,40 @@
+# Helm
+charts/**/charts/
+charts/**/*.tgz
+charts/**/Chart.lock
+
+# Kubernetes
+*.kubeconfig
+kubeconfig*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Secrets — NE JAMAIS commit
+.env
+.env.local
+*.pem
+*.key
+secrets/
+
+# Build artifacts
+dist/
+build/
+*.log
+
+# Local helm overrides
+values-local.yaml
+values-*.local.yaml

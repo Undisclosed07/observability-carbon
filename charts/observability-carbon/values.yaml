@@ -1,0 +1,69 @@
+# observability-carbon — values
+# Carbon-aware observability stack values
+
+# Carbon configuration
+# ---------------------
+# `region` : code region used as a label on metrics (free-form string).
+# `intensityGramsPerKwh` : carbon intensity of the electricity mix in this region.
+#                          Used by Prometheus recording rules to compute gCO2eq.
+# `pue` : datacenter Power Usage Effectiveness. Multiplied with intensity to get
+#         "effective" carbon intensity (account for cooling, network, losses).
+# `regions` : reference table for cross-region comparisons.
+carbon:
+  region: CH
+  intensityGramsPerKwh: 128
+  pue: 1.09
+
+  # Reference intensities (gCO2eq/kWh, annual averages 2024).
+  # Sources: ElectricityMaps, RTE, Swissgrid, EIA.
+  regions:
+    CH: 128   # Switzerland (hydro-dominant, Infomaniak default)
+    FR: 56    # France (nuclear-heavy)
+    DE: 380   # Germany (gas + coal mix)
+    PL: 635   # Poland (coal-heavy)
+    US-East: 370
+    US-West: 240
+    NO: 30    # Norway (hydro)
+
+# kube-prometheus-stack
+# ---------------------
+kubePrometheusStack:
+  enabled: true
+
+prometheus:
+  prometheusSpec:
+    # Keep ~14 days of metrics for carbon trend analysis.
+    retention: 14d
+    resources:
+      requests:
+        cpu: 200m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+
+grafana:
+  adminPassword: prom-operator
+  defaultDashboardsEnabled: true
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+  persistence:
+    enabled: false  # set true in prod
+
+# Kepler — eBPF-based power estimator
+# ------------------------------------
+kepler:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: observability
+  # On clouds without RAPL access, Kepler falls back to a regression model.
+  # Set this to true if you're on bare-metal with RAPL available.
+  privileged: true
+
+# Sample-app deployment toggle (deploy via examples/ instead by default)
+sampleApp:
+  enabled: false

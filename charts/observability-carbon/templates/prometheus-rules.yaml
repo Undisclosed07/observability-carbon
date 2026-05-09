@@ -1,0 +1,77 @@
+{{- if .Values.kubePrometheusStack.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "observability-carbon.fullname" . }}-carbon-rules
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "observability-carbon.labels" . | nindent 4 }}
+    # Required for kube-prometheus-stack to pick this up.
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: carbon.recording
+      interval: 30s
+      rules:
+        # ---------------------------------------------------------------
+        # 1. Convert Kepler joules counter to instantaneous watts per pod.
+        # kepler_container_joules_total is a counter of cumulative joules.
+        # rate(...)[1m] gives joules/second = watts.
+        # ---------------------------------------------------------------
+        - record: pod:carbon_watts
+          expr: |
+            sum by (pod_namespace, pod_name) (
+              rate(kepler_container_joules_total[1m])
+            )
+
+        # 2. Watts per namespace.
+        - record: namespace:carbon_watts
+          expr: |
+            sum by (pod_namespace) (pod:carbon_watts)
+
+        # ---------------------------------------------------------------
+        # 3. gCO2eq per second per pod.
+        # watts × (intensity_g_per_kwh × pue) / (1000 W/kW × 3600 s/h)
+        #   = gCO2eq/s
+        # ---------------------------------------------------------------
+        - record: pod:carbon_grams_per_second
+          expr: |
+            pod:carbon_watts
+            * {{ .Values.carbon.intensityGramsPerKwh }}
+            * {{ .Values.carbon.pue }}
+            / 3600000
+          labels:
+            region: {{ .Values.carbon.region | quote }}
+
+        # 4. gCO2eq per second per namespace.
+        - record: namespace:carbon_grams_per_second
+          expr: |
+            sum by (pod_namespace) (pod:carbon_grams_per_second)
+          labels:
+            region: {{ .Values.carbon.region | quote }}
+
+        # 5. kWh consumed by namespace over the last hour.
+        - record: namespace:carbon_kwh_1h
+          expr: |
+            sum by (pod_namespace) (
+              increase(kepler_container_joules_total[1h])
+            ) / 3600000
+
+    - name: carbon.alerts
+      rules:
+        # Example alert: a single namespace burning more than 50 gCO2eq/s
+        # sustained over 10 minutes — usually means a runaway workload.
+        - alert: NamespaceCarbonBudgetExceeded
+          expr: namespace:carbon_grams_per_second > 50
+          for: 10m
+          labels:
+            severity: warning
+            category: sustainability
+          annotations:
+            summary: "High carbon emissions in namespace {{`{{ $labels.pod_namespace }}`}}"
+            description: |
+              Namespace {{`{{ $labels.pod_namespace }}`}} is emitting more than
+              50 gCO2eq/s for over 10 minutes. Investigate the workload sizing
+              or consider relocating to a lower-carbon region.
+{{- end }}

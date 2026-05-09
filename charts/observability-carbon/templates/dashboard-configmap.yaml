@@ -1,0 +1,13 @@
+{{- if .Values.kubePrometheusStack.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "observability-carbon.fullname" . }}-grafana-dashboards
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "observability-carbon.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  carbon-overview.json: |-
+    {{- .Files.Get "dashboards/carbon-overview.json" | nindent 4 }}
+{{- end }}
