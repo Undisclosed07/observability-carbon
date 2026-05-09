@@ -21,14 +21,14 @@ spec:
         # ---------------------------------------------------------------
         - record: pod:carbon_watts
           expr: |
-            sum by (pod_namespace, pod_name) (
-              rate(kepler_container_joules_total[1m])
+            sum by (container_namespace, pod_name) (
+              rate(kepler_container_joules_total{mode="dynamic"}[2m])
             )
 
         # 2. Watts per namespace.
         - record: namespace:carbon_watts
           expr: |
-            sum by (pod_namespace) (pod:carbon_watts)
+            sum by (container_namespace) (pod:carbon_watts)
 
         # ---------------------------------------------------------------
         # 3. gCO2eq per second per pod.
@@ -47,15 +47,15 @@ spec:
         # 4. gCO2eq per second per namespace.
         - record: namespace:carbon_grams_per_second
           expr: |
-            sum by (pod_namespace) (pod:carbon_grams_per_second)
+            sum by (container_namespace) (pod:carbon_grams_per_second)
           labels:
             region: {{ .Values.carbon.region | quote }}
 
         # 5. kWh consumed by namespace over the last hour.
         - record: namespace:carbon_kwh_1h
           expr: |
-            sum by (pod_namespace) (
-              increase(kepler_container_joules_total[1h])
+            sum by (container_namespace) (
+              increase(kepler_container_joules_total{mode="dynamic"}[1h])
             ) / 3600000
 
     - name: carbon.alerts

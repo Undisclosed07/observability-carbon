@@ -166,8 +166,8 @@
       },
       "targets": [
         {
-          "expr": "namespace:carbon_watts",
-          "legendFormat": "{{pod_namespace}}",
+          "expr": "namespace:carbon_watts > 0",
+          "legendFormat": "{{container_namespace}}",
           "refId": "A"
         }
       ],
@@ -191,8 +191,8 @@
       },
       "targets": [
         {
-          "expr": "namespace:carbon_grams_per_second",
-          "legendFormat": "{{pod_namespace}}",
+          "expr": "namespace:carbon_grams_per_second > 0",
+          "legendFormat": "{{container_namespace}}",
           "refId": "A"
         }
       ],
