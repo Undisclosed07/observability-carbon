@@ -32,16 +32,24 @@ kubePrometheusStack:
 
 prometheus:
   prometheusSpec:
-    # Keep ~14 days of metrics for carbon trend analysis.
     retention: 14d
     resources:
       requests:
-        cpu: 200m
-        memory: 1Gi
+        cpu: 100m
+        memory: 512Mi
       limits:
-        memory: 2Gi
+        memory: 1Gi
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 128Mi
 
 grafana:
+  # Override via --set grafana.adminPassword=<secret> at deploy time — never commit a real password here.
   adminPassword: prom-operator
   defaultDashboardsEnabled: true
   sidecar:
